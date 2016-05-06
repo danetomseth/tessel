@@ -11,5 +11,9 @@
     "Tessel"
   ],
   "license": "MIT",
-  "readme": "A bare bones Tessel 2 blinky script."
+  "readme": "A bare bones Tessel 2 blinky script.",
+  "dependencies": {
+    "ambient-attx4": "^0.2.8",
+    "ws": "^1.1.0"
+  }
 }
