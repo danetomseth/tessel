@@ -1,5 +1,5 @@
 {
-  "name": "tesselhack",
+  "name": "ambient",
   "version": "0.0.0",
   "description": "Tessel project",
   "main": "index.js",
@@ -14,6 +14,7 @@
   "readme": "A bare bones Tessel 2 blinky script.",
   "dependencies": {
     "ambient-attx4": "^0.2.8",
+    "http": "0.0.0",
     "ws": "^1.1.0"
   }
 }
