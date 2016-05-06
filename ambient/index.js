@@ -1,83 +1,140 @@
-/* ambient.js example */
-// this example streams sound data from
-// the ambient sensor every 0.5 seconds
-
 var tessel = require('tessel');
 var ambientlib = require('ambient-attx4');
 var http = require('http');
 var servolib = require('servo-pca9685');
 var ambient = ambientlib.use(tessel.port['A']);
-
 var servo = servolib.use(tessel.port['B']);
-var servo1 = 1; // We have a servo plugged in at position 1
-
+var servo1 = 1; 
 
 var servoReady = false;
+var deviceOn = false;
+var zeroSet = false;
+var clap = false;
+var lastSound = 0;
+var clapSound = 0;
+var nextSound = 0;
+var soundArray = [0,0,0];
 
-// Connect to our ambient sensor.
+// ambient.on('ready', function() {
+// 	console.log('Ambient Ready')
+//     servo.on('ready', function() {
+//         servoReady = true;
+//         console.log('Servo Ready')
+//     });
+//     var position = 0;
+
+//     setInterval(function() {
+//         ambient.getSoundLevel(function(err, sounddata) {
+//             servo.configure(servo1, 0.05, 0.12, function() {
+//             	if(!zeroSet) {
+//                     servo.move(servo1, 0);
+//                     position = 0; 
+//                     zeroSet = true;
+//             	}
+//                 if (err) throw err;
+//                 if(sounddata > 0.3) {
+//                 	soundArray.push(sounddata)
+//                 	soundArray.shift();
+//                 	if(soundArray[0] < soundArray[1] && soundArray[1] > soundArray[2]) {
+//                 		soundArray = [0,0,0];
+//                 		clap = true;
+//                 	}
+//                 	console.log('Array', soundArray)
+//                 }
+
+//                 if (clap) {
+//                     var servoInt;
+//                     if (!deviceOn) {
+//                         deviceOn = true;
+//                         servoInt = setInterval(function() {
+//                             if (position > 0.2) {
+//                                 clearInterval(servoInt);
+//                                 zeroSet = false; 
+//                                 deviceOn = false; 
+//                             }
+//                             servo.move(servo1, position);
+//                             position += 0.05;
+//                         }, 500)
+//                     }
+//                 }
+//             });
+//         });
+//     }, 100); 
+
+// });
+
+// ambient.on('error', function(err) {
+//     console.log(err);
+// });
 
 
 ambient.on('ready', function() {
+	console.log('Ambient Ready')
+    servo.on('ready', function() {
+        servoReady = true;
+        console.log('Servo Ready')
+    });
+    var position = 0;
 
- setInterval(function() {
-        ambient.getSoundLevel(function(err, sounddata) {
-            if (err) throw err;
-            if (sounddata > 0.2) {
-                if (servoReady) {
-                    console.log("Sound Level:", sounddata.toFixed(8));
-                    //turnOn();
+    setInterval(function() {
+    	ambient.getLightLevel( function(err, lightdata) {
+    		servo.configure(servo1, 0.05, 0.12, function() {
+            	console.log('light data', lightdata);
+            	if(!zeroSet) {
+                    servo.move(servo1, 0);
+                    position = 0; 
+                    zeroSet = true;
+            	}
+                if (lightdata > 0.38) {
+                	console.log('moving!!')
+                    var servoInt;
+                    if (!deviceOn) {
+                        deviceOn = true;
+                        servoInt = setInterval(function() {
+                            if (position > 0.2) {
+                                clearInterval(servoInt);
+                                zeroSet = false; 
+                                deviceOn = false; 
+                            }
+                            servo.move(servo1, position);
+                            position += 0.05;
+                        }, 500)
+                    }
                 }
-            }
-            console.log('quiet');
-        });
-    }, 100); // The readings will happen every .5 seconds
+            });
+    	})
+        // ambient.getSoundLevel(function(err, sounddata) {
+        //     servo.configure(servo1, 0.05, 0.12, function() {
+        //     	if(!zeroSet) {
+        //             servo.move(servo1, 0);
+        //             position = 0; 
+        //             zeroSet = true;
+        //     	}
+        //         if (err) throw err;
+        //         if(sounddata > .3) {
+        //         	console.log(sounddata);
+        //         }
+        //         if (sounddata > 0.3) {
+        //             var servoInt;
+        //             if (!deviceOn) {
+        //                 deviceOn = true;
+        //                 servoInt = setInterval(function() {
+        //                     if (position > 0.2) {
+        //                         clearInterval(servoInt);
+        //                         zeroSet = false; 
+        //                         deviceOn = false; 
+        //                     }
+        //                     servo.move(servo1, position);
+        //                     position += 0.05;
+        //                 }, 500)
+        //             }
+        //         }
+        //     });
+        // });
+    }, 100); 
 
-
-
-});
-
-
-
-
-servo.on('ready', function() {
-	servoReady = true;
 });
 
 ambient.on('error', function(err) {
     console.log(err);
 });
-
-function turnOn() {
-     var position = 0; //  Target position of the servo between 0 (min) and 1 (max).
-    //  Moving them apart = more range, more likely to stall and burn out
-    servo.configure(servo1, 0.05, 0.12, function() {
-        //  Set servo #1 to position pos.
-   		servo.move(servo1, 0.5);
-        //readAmbient();
-    });
-    console.log('Move???');
-}
-
-
-
-   
-
-
-
-// servo.on('ready', function () {
-//   var position = 0;  //  Target position of the servo between 0 (min) and 1 (max).
-//   //  Moving them apart = more range, more likely to stall and burn out
-//   servo.configure(servo1, 0.05, 0.12, function () {
-//     setInterval(function () {
-//       console.log('Position (in range 0-1):', position);
-//       //  Set servo #1 to position pos.
-//       servo.move(servo1, position);
-
-//       // Increment by 10% (~18 deg for a normal servo)
-//       position += 0.1;
-//       if (position > 1) {
-//         position = 0; // Reset servo position
-//       }
-//     }, 500); // Every 500 milliseconds
-//   });
-// });
